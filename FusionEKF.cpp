@@ -72,12 +72,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
         float rho=measurement_pack.raw_measurements_[0];
         float phi=measurement_pack.raw_measurements_[1];
         float rho_dot=measurement_pack.raw_measurements_[2];
-        float x = rho * cos(phi);
-        float y = rho * sin(phi);
-        float vx = rho_dot * cos(phi);
-        float vy = rho_dot * sin(phi);
-        
-        ekf_.x_<<x,y,vx,vy;
+	 
+        ekf_.x_<<rho * cos(phi), rho * sin(phi), rho_dot * cos(phi), rho_dot * sin(phi);
         
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -95,8 +91,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 			   0, 0, 1, 0,
 			   0, 0, 0, 1;
       
-    cout << "init x_ = " << ekf_.x_ << endl;
-    cout << "init P_ = " << ekf_.P_ << endl;
+    //cout << "init x_ = " << ekf_.x_ << endl;
+    //cout << "init P_ = " << ekf_.P_ << endl;
       
     previous_timestamp_ = measurement_pack.timestamp_;
 
@@ -125,13 +121,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     double dt_2 = dt * dt;
     double dt_3 = dt_2 * dt;
     double dt_4 = dt_3 * dt;
-    double c1 = dt_4 / 4;
-    double c2 = dt_3 / 2;
+
     ekf_.Q_ = MatrixXd(4, 4);
-    ekf_.Q_ << c1 * noise_ax, 0, c2 * noise_ax, 0,
-		  0, c1 * noise_ay, 0, c2 * noise_ay,
-		  c2 * noise_ax, 0, dt_2 * noise_ax, 0,
-		  0, c2 * noise_ay, 0, dt_2 * noise_ay;
+    ekf_.Q_ << dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0,
+    		0, dt_4/4*noise_ay, 0, dt_3/2*noise_ay,
+    		dt_3/2*noise_ax, 0, dt_2*noise_ax, 0,
+		0, dt_3/2*noise_ay, 0, dt_2*noise_ay;
     
     
 
